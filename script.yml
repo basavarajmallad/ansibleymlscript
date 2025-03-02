@@ -1,0 +1,29 @@
+---
+- hosts: 172.31.89.105
+  tasks:
+    - name: installing_package
+      apt:
+        update_cache: yes
+        name: [ git, maven, wget ]
+        state: present
+      become: yes
+      become_user: root
+    - name: installing_jenkins
+      shell: wget -O /usr/share/keyrings/jenkins-keyring.asc https://pkg.jenkins.io/debian-stable/jenkins.io-2023.key
+      args:
+        creates: /usr/share/keyrings/jenkins-keyring.asc
+    - name: adding_the_dirctory
+      shell: echo "deb [signed-by=/usr/share/keyrings/jenkins-keyring.asc]" \
+        https://pkg.jenkins.io/debian-stable binary/ | sudo tee \
+        /etc/apt/sources.list.d/jenkins.list > /dev/null
+      args:
+        creates: /etc/apt/sources.list.d/jenkins.list
+    - name: install_jenkin_apt
+      apt:
+        name: [ jenkins ]
+        state: present
+    - name: Start Jenkins Service
+      systemd:
+        name: jenkins
+        state: started
+        enabled: yes
