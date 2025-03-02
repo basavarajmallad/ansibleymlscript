@@ -1,0 +1,33 @@
+---
+- hosts: 172.31.92.95
+  tasks:
+    - name: installing_wget_package
+      apt:
+        update_cache: yes
+        name: wget
+        state: present
+      become: yes
+      become_user: root
+    - name: download_apache_tomacte
+      shell: wget https://dlcdn.apache.org/tomcat/tomcat-10/v10.1.36/bin/apache-tomcat-10.1.36.tar.gz
+      args:
+        chdir: /opt
+        creates: /opt/apache-tomcat-10.1.36.tar.gz
+    - name: unzip_apche_tomacte
+      shell: tar -xvzf apache-tomcat-10.1.36.tar.gz
+      args:
+        chdir: /opt
+        creates: /opt/apache-tomcat-10.1.36
+    - name: Set execute permissions on Tomcat scripts
+      shell: "chmod +x /opt/apache-tomcat-10.1.36/bin/*.sh"
+    - name: Change ownership of Tomcat directory
+      file:
+        path: "/opt/apache-tomcat-10.1.36"
+        owner: root
+        group: root
+        state: directory
+        recurse: yes
+    - name: execute_Path_script
+      shell: "./shutdown.sh && ./startup.sh"
+      args:
+        chdir: /opt/apache-tomcat-10.1.36/bin
